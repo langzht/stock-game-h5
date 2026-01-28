@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
+    <title>炒股比赛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --wechat-green: #07c160;
+            --wechat-bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #888888;
+            --border-color: #e5e5e5;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--wechat-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        /* 状态栏适配（刘海屏） */
+        .safe-area-top {
+            height: constant(safe-area-inset-top);
+            height: env(safe-area-inset-top);
+            background-color: var(--card-bg);
+        }
+        
+        /* 顶部导航栏 */
+        .nav-header {
+            background-color: var(--card-bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 0.5px solid var(--border-color);
+        }
+        
+        .nav-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            padding: 0 16px;
+            position: relative;
+        }
+        
+        .nav-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .nav-back {
+            position: absolute;
+            left: 16px;
+            display: flex;
+            align-items: center;
+            color: #576b95;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        
+        .nav-back:active {
+            opacity: 0.6;
+        }
+        
+        /* 用户信息卡片 */
+        .user-card {
+            background: linear-gradient(135deg, #07c160 0%, #05a050 100%);
+            margin: 12px 16px;
+            padding: 24px 20px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .user-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .user-id {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: normal;
+        }
+        
+        /* 主要内容区 */
+        .content-area {
+            padding: 20px 16px;
+            min-height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 空状态插画 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .empty-icon::before {
+            content: '📊';
+            font-size: 60px;
+            opacity: 0.3;
+        }
+        
+        .empty-icon::after {
+            content: '❌';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 24px;
+            background: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .empty-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        
+        /* 微信风格按钮 */
+        .weui-btn {
+            width: 100%;
+            max-width: 280px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .weui-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .weui-btn:active::after {
+            opacity: 1;
+        }
+        
+        .weui-btn_primary {
+            background-color: var(--wechat-green);
+            color: white;
+        }
+        
+        .weui-btn_default {
+            background-color: #f2f2f2;
+            color: #06ae56;
+        }
+        
+        /* 操作提示 */
+        .action-tip {
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(7, 193, 96, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--wechat-green);
+            font-size: 13px;
+            color: var(--text-secondary);
+            width: 100%;
+            max-width: 320px;
+        }
+        
+        /* 底部版权 */
+        .footer {
+            text-align: center;
+            padding: 24px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
+        
+        .footer-logo::before {
+            content: 'K';
+            width: 20px;
+            height: 20px;
+            background: #000;
+            color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        /* 加载动画 */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Toast提示（微信风格） */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="safe-area-top"></div>
+    
+    <!-- 顶部导航 -->
+    <header class="nav-header">
+        <div class="nav-content">
+            <a href="javascript:history.back()" class="nav-back">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                <span>返回</span>
+            </a>
+            <h1 class="nav-title">炒股比赛</h1>
+        </div>
+    </header>
+    
+    <!-- 用户信息卡片 -->
+    <div class="user-card">
+        <span class="user-label">当前选手</span>
+        <div class="user-id">
+            797
+            <span class="user-badge">选手</span>
+        </div>
+    </div>
+    
+    <!-- 主要内容 -->
+    <main class="content-area">
+        <div class="empty-state">
+            <div class="empty-icon"></div>
+            <h2 class="empty-title">暂无进行中的比赛</h2>
+            <p class="empty-desc">当前没有活跃的炒股比赛<br>请联系管理员创建新比赛</p>
+            
+            <button class="weui-btn weui-btn_primary" onclick="contactAdmin()">
+                联系管理员
+            </button>
+            <button class="weui-btn weui-btn_default" onclick="refreshStatus()">
+                刷新状态
+            </button>
+            
+            <div class="action-tip">
+                <strong>提示：</strong>比赛创建后，您将收到微信通知，请及时关注群消息或公众号推送。
+            </div>
+        </div>
+    </main>
+    
+    <!-- 底部 -->
+    <footer class="footer">
+        <div class="footer-logo">Kimi Agent</div>
+        <div>Powered by WeChat H5</div>
+    </footer>
+    
+    <!-- Toast容器 -->
+    <div id="toast" class="toast"></div>
+    
+    <script>
+        // 显示Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // 联系管理员
+        function contactAdmin() {
+            // 调用微信原生功能或跳转客服
+            showToast('正在打开客服对话...');
+            setTimeout(() => {
+                window.location.href = 'weixin://dl/officialaccounts';
+            }, 800);
+        }
+        
+        // 刷新状态
+        function refreshStatus() {
+            showToast('刷新中...');
+            // 模拟加载状态
+            document.querySelector('.content-area').style.opacity = '0.6';
+            setTimeout(() => {
+                document.querySelector('.content-area').style.opacity = '1';
+                showToast('当前暂无比赛');
+            }, 1000);
+        }
+        
+        // 微信JS-SDK配置（如需分享功能）
+        document.addEventListener('WeixinJSBridgeReady', function() {
+            // 隐藏右上角菜单（可选）
+            // WeixinJSBridge.call('hideOptionMenu');
+            
+            // 分享配置
+            if (typeof WeixinJSBridge !== 'undefined') {
+                WeixinJSBridge.on('menu:share:appmessage', function() {
+                    WeixinJSBridge.invoke('sendAppMessage', {
+                        title: '炒股比赛 - 选手797',
+                        desc: '暂无进行中的比赛，快来看看吧',
+                        link: window.location.href,
+                        imgUrl: 'https://via.placeholder.com/100x100/07c160/ffffff?text=797'
+                    });
+                });
+            }
+        });
+        
+        // 阻止微信橡皮筋效果（iOS下拉弹性）
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.content-area')) return;
+            e.preventDefault();
+        }, { passive: false });
+        
+        // 页面加载动画
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.3s';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 50);
+        });
+    </script>
+</body>
+</html>
